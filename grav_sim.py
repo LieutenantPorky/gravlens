@@ -76,7 +76,7 @@ for p in np.linspace(0.15, np.pi/2, num_rays):
     init_data_4.append([-5,0,0,0,x,y,z,0])
 
 # Cast the initial data to a continuous memory block as a double (float64)
-init_bytes=np.array(init_data_2, dtype=np.double).tobytes()
+init_bytes=np.array(init_data_4, dtype=np.double).tobytes()
 
 # define a memory buffer with the data, and bind it to buffer 0 on the GPU
 ray_buffer = ctx.buffer(init_bytes,dynamic=False)
@@ -98,7 +98,6 @@ ray_buffer.release()
 
 #get range for Shapiro delay
 delay = np.moveaxis(ray_timeline[-1],0,-1)[3]
-print(delay)
 delayMax = max(delay)
 delayMin = min(delay)
 
@@ -110,19 +109,19 @@ print()
 
 # plot the rays in 3d
 
-fig = plt.figure()
-ax = fig.gca(projection='3d')
-
-for ray in rays:
-    ax.plot(ray[0],ray[1],ray[2], color=plt.cm.plasma((ray[3][-1]-delayMin)/(delayMax-delayMin)))
-
-from matplotlib.lines import Line2D
-custom_lines = [Line2D([0], [0], color=plt.cm.plasma(0.), lw=4),
-                Line2D([0], [0], color=plt.cm.plasma(1.), lw=4)]
-
-
-ax.legend(custom_lines, ['Low delay', 'High delay'])
-ax.plot([0],[0],[0], 'o')
+# fig = plt.figure()
+# ax = fig.gca(projection='3d')
+#
+# for ray in rays:
+#     ax.plot(ray[0],ray[1],ray[2], color=plt.cm.plasma((ray[3][-1]-delayMin)/(delayMax-delayMin)))
+#
+# from matplotlib.lines import Line2D
+# custom_lines = [Line2D([0], [0], color=plt.cm.plasma(0.), lw=4),
+#                 Line2D([0], [0], color=plt.cm.plasma(1.), lw=4)]
+#
+#
+# ax.legend(custom_lines, ['Low delay', 'High delay'])
+# ax.plot([0],[0],[0], 'o')
 
 #plot the rays in 2d (overhead)
 
@@ -142,26 +141,28 @@ ax.plot([0],[0],[0], 'o')
 
 #Plot an analysis of the deflection angle
 
-# theory = []
-# sim = []
-# for ray in rays:
-#     source = np.array([-5,0,0])
-#     observer = np.array([ray[0][-1], ray[1][-1], ray[2][-1]])
-#
-#     initial_d = np.array([ray[4][0], ray[5][0], ray[6][0]])
-#     final_d = np.array([ray[4][-1], ray[5][-1], ray[6][-1]])
-#     sim_alpha = np.arccos(np.dot(initial_d, final_d))
-#
-#     Dl = np.sqrt(np.sum(observer ** 2))
-#     theta = np.arccos(np.dot(observer,final_d)/Dl)
-#     alpha = 4 * mass / (theta * Dl)
-#     sim.append(sim_alpha)
-#     theory.append(alpha)
-#
-# plt.plot(np.array(sim)*180/np.pi, np.array(theory)/np.array(sim))
-#
-# plt.xlabel(r"Simulated deflection angle $\hat{\alpha}_{sim}$ (deg)")
-# plt.ylabel(r"$\hat{\alpha}_{sim}$ / $\hat{\alpha}_{theory}$")
+theory = []
+sim = []
+for ray in rays:
+    source = np.array([-5,0,0])
+    observer = np.array([ray[0][-1], ray[1][-1], ray[2][-1]])
+
+    initial_d = np.array([ray[4][0], ray[5][0], ray[6][0]])
+    final_d = np.array([ray[4][-1], ray[5][-1], ray[6][-1]])
+    sim_alpha = np.arccos(np.dot(initial_d, final_d))
+
+    Dl = np.sqrt(np.sum(observer ** 2))
+    theta = np.arccos(np.dot(observer,final_d)/Dl)
+    alpha = 4 * mass / (theta * Dl)
+    sim.append(sim_alpha)
+    theory.append(alpha)
+
+    print(theta, alpha, sim_alpha)
+
+plt.plot(np.array(sim)*180/np.pi, np.array(sim)/np.array(theory))
+
+plt.xlabel(r"Simulated deflection angle $\hat{\alpha}_{sim}$ (deg)")
+plt.ylabel(r"$\hat{\alpha}_{sim}$ / $\hat{\alpha}_{theory}$")
 
 
 plt.show()
